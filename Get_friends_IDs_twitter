@@ -1,0 +1,216 @@
+import tweepy
+import unicodecsv
+import sys
+from datetime import timedelta, date
+from twython import Twython
+
+# Twitter Credentials
+
+consumer_key = 'cGU6NcUYBo2luyEXzR8rUoior'
+consumer_secret = '12cLuRI1Mi7UjhPFhEpsD7X0LX2CMnRG6HBzP6v9HxIPkt7DQk'
+access_key = '2189941820-o8rGBs5JaiZ6mrWt0tdRCkrZiq2zSNpexIYWsxr'
+access_secret = 'BtgnVyWSQ2XiDc59iR4bneFmTrDJ32y3FUf5TkEygyPzI'
+
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_key, access_secret)
+
+api = tweepy.API(auth)
+
+# import GetOldTweet to scarpe old tweet
+if sys.version_info[0] < 3:
+    import GetOldTweets3
+else:
+    import GetOldTweets3 as got
+
+
+
+# user_screen_name_list
+def main():
+    users = ["00725shs"]
+    user_dict, user_id2name = get_user_id(users)
+    get_friends_twitter(users, user_dict, user_id2name)
+
+
+# ~~~~ functions ~~~~
+# period for search
+def daterange(date1, date2):
+    for n in range(int((date2 - date1).days) + 1):
+        yield date1 + timedelta(n)
+
+
+# get_user_information
+def get_user_id(users):
+    user_dict = {}
+    user_id2name = {}
+    for user in users:
+        user_obj = api.get_user(user)
+        userFriends_id = api.friends_ids(user)
+
+        twitter = Twython(consumer_key, consumer_secret)
+        profile_data = twitter.lookup_user(user_id=userFriends_id)
+        userFriends = [data['screen_name'] for data in profile_data]
+
+        user_dict[user] = userFriends
+        user_id2name[user] =  user_obj.name
+        # user_info.append([user_obj.name, user_obj.friends_count])
+
+    return user_dict, user_id2name
+
+#get_friends_information
+def get_friends_twitter(users, user_dict, user_id2name):
+    date_list = []
+    start_dt = date(2018, 9, 2)
+    end_dt = date(2018, 10, 13)  # get 08-01 to  09-15
+    for dt in daterange(start_dt, end_dt):
+        date_list.append(dt.strftime("%Y-%m-%d"))
+
+    max_twitts_per_day = 20
+    friend_tweets = {}
+
+    for user in users:
+        for friend in list(user_dict[user]):
+            tmp_tweets = []
+            for i in range(len(date_list) - 1):
+
+                tweetCriteria = got.manager.TweetCriteria().setUsername(friend) \
+                    .setSince(date_list[i]) \
+                    .setUntil(date_list[i + 1]) \
+                    .setMaxTweets(max_twitts_per_day)
+
+                tweets = got.manager.TweetManager.getTweets(tweetCriteria)
+                for tw in tweets:
+                    tmp_tweets.append(tw.text)
+
+                if i % 1 == 0:
+                    print("user: {}, friend: {}, iter: {:4d};  {} data processed".format(user, friend, i, date_list[i]))
+
+            friend_tweets[(user, friend)] = tmp_tweets
+
+            write_list = []
+            for tup in list(friend_tweets.keys()):
+                for tw in friend_tweets[tup]:
+                     write_list.append([tup[0], user_id2name[tup[0]], len(user_dict[tup[0]]), tup[1], tw])
+            write_to_csv(write_list)
+
+# open cvs file
+def write_to_csv(lst):
+    with open('follower_tweet.csv','wb')  as file :
+        writer = unicodecsv.writer(file, delimiter =',', quotechar ='"')
+        writer.writerow(["userID", "userName", "#of_following","friend_ID","friend_tweet"])
+        for line in lst:
+            writer.writerow(line)
+    #                     "username",
+    #                     "followers_count",
+    #                     "listed_count",
+    #                     "following",
+    #                     "favorites",
+    #                     "verified",
+    #                     "default_profile",
+    #                     "location",
+    #                     "time_zone",
+    #                     "statuses_count",
+    #                     "description",
+    #                     "geo_enabled",
+    #                     "contributors_enabled",
+    #                     "tweet_year",
+    #                     "tweet_month",
+    #                     "tweet_day",
+    #                     "tweet_hour",
+    #                     "tweet_text",
+    #                     "tweet_lat",
+    #                     "tweet_long",
+    #                     "tweet_source",
+    #                     "tweet_in_reply_to_screen_name",
+    #                     "tweet_direct_reply",
+    #                     "tweet_retweet_status",
+    #                     "tweet_retweet_count",
+    #                     "tweet_favorite_count",
+    #                     "tweet_hashtags",
+    #                     "tweet_hashtags_count",
+    #                     "tweet_urls",
+    #                     "tweet_urls_count",
+    #                     "tweet_user_mentions",
+    #                     "tweet_user_mentions_count",
+    #                     "tweet_media_type",
+    #                     "tweet_contributors"])
+    #
+    # # selected User IDs
+    #
+
+        #Gather info specific to the current user.
+
+    #                     user_obj.screen_name,
+    #                     user_obj.followers_count,
+    #                     user_obj.listed_count,
+    #                 user_obj.friends_count]
+    #                     user_obj.favourites_count,
+                     # user_obj.verified,
+                     # user_obj.default_profile,
+                     # user_obj.location,
+                     # user_obj.time_zone,
+                     # user_obj.statuses_count,
+                     # user_obj.description,
+                     # user_obj.geo_enabled,
+                     # user_obj.contributors_enabled]
+
+    # friends=[]
+    #
+    # for userfriend  in userFriends:
+    #     friends.append(userfriend)
+    #
+    #     ###http://docs.tweepy.org/en/v3.5.0/api.html##
+    #
+    #             # friend_obj =api.friends_ids(user)
+    #             # friend_info=[friend_obj.user_id,
+    #             #              friend_obj.screen_name
+    #
+    #
+    #             #
+
+
+##############scrap old tweet of friends ########
+
+
+
+
+
+
+
+
+
+        # num = 30
+        # friends = []
+        # friends_tweets = []
+        # max_twitts_per_day = 20
+        #
+
+  #   tmpTweets = api.user_timeline(userfriend)
+  #   for tweet in tmpTweets:
+  #
+  #
+  # # while (tmpTweets[-1].created_at > startDate):
+  # #     tmpTweets = api.user_timeline(userfriend, max_id=tmpTweets[-1].id)
+  # #     for tweet in tmpTweets:
+  # #         if tweet.created_at < endDate and tweet.created_at > startDate:
+  # #             FriendstTweets.append(tweet)
+  #
+  #     tweet_info = [tweet.created_at.year,
+  #                   tweet.created_at.month,
+  #                   tweet.created_at.day,
+  #                   tweet.created_at.hour,
+  #                   unidecode(tweet.text),
+  #                   # lat,
+  #                   # long,
+  #                   tweet.source,
+  #                   tweet.in_reply_to_screen_name,
+  #                   # direct_reply,
+  #                   # retweet_status,
+  #                   tweet.retweet_count,
+  #                   tweet.favorite_count]
+
+# write data to CSV
+
+
+#print ("done")
+if __name__ == '__main__':
+    main()
