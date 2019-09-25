@@ -1,0 +1,142 @@
+#https://pypi.org/project/GetOldTweets3/
+import tweepy
+# import tweepy  import Cursor
+import datetime
+import GetOldTweets3
+import sys
+import json
+import unicodecsv
+from unidecode import unidecode
+import pandas as pd
+import csv
+
+
+
+consumer_key = 'cGU6NcUYBo2luyEXzR8rUoior'
+consumer_secret = '12cLuRI1Mi7UjhPFhEpsD7X0LX2CMnRG6HBzP6v9HxIPkt7DQk'
+access_key = '2189941820-o8rGBs5JaiZ6mrWt0tdRCkrZiq2zSNpexIYWsxr'
+access_secret = 'BtgnVyWSQ2XiDc59iR4bneFmTrDJ32y3FUf5TkEygyPzI'
+
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_key, access_secret)
+
+api = tweepy.API(auth)
+
+if sys.version_info[0] < 3:
+    import GetOldTweets3
+else:
+    import GetOldTweets3 as got
+
+
+def write_to_csv(list_of_emails):
+    with open('Lunch_Shrthomas.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter = '\n')
+        writer.writerow(list_of_emails)
+
+#
+def main():
+    def explanation (descr, t):
+        print(descr)
+        print("Username: %s" % t.username)
+        print("Retweets: %d" % t.retweets)
+        print("Text: %s" % t.text)
+        print("Mentions: %s" % t.mentions)
+        print("Hashtags: %s\n" % t.hashtags)
+
+
+# Example 3 - Get tweets by username and bound dates
+# tweetCriteria = got.manager.TweetCriteria().setUsername("barackobama").setSince("2015-09-10").setUntil("2015-09-12").setMaxTweets(5)
+# tweet = got.manager.TweetManageriteria)[0].getTweets(tweetCriteria)[0]
+#
+# print ("### Example 3 - Get tweets by username and bound dates [barackobama, '2015-09-10', '2015-09-12']", tweet)
+
+# explanation (barackobama, 3):
+
+from datetime import timedelta, date
+
+def daterange(date1, date2):
+    for n in range(int ((date2 - date1).days)+1):
+        yield date1 + timedelta(n)
+
+
+if __name__ == '__main__':
+    date_list = []
+    start_dt = date(2017, 10, 2)
+    end_dt = date(2018, 10, 2) # get 08-01 to  09-15
+    for dt in daterange(start_dt, end_dt):
+        date_list.append(dt.strftime("%Y-%m-%d"))
+
+    # num = 30
+    users = ["Shrthomas"]
+    tweet_lst = []
+    max_twitts_per_day = 20
+    for i in range(len(date_list)-1):
+
+        tweetCriteria = got.manager.TweetCriteria().setUsername(users) \
+            .setSince(date_list[i]) \
+            .setUntil(date_list[i+1]) \
+            .setMaxTweets(max_twitts_per_day)
+
+        tweets = got.manager.TweetManager.getTweets(tweetCriteria)
+        for tw in tweets:
+            tweet_lst.append(tw.text)
+
+
+        if i % 1 == 0:
+            print("{:4d}: {} data processed".format(i,date_list[i]))
+        if i % 2 == 0 and i != 0:
+            write_to_csv(tweet_lst)
+
+
+#
+# if __name__ == '__main__':
+#
+# num = 2
+# users = ["billmaher"]
+#
+#
+# tweet = []
+# period = 10
+# for i in range(num//period):
+#
+#     tweetCriteria = got.manager.TweetCriteria().setUsername(users) \
+#         .setSince("2019-01-01") \
+#         .setUntil("2019-05-20") \
+#         .setMaxTweets(period)
+#
+#     for j in range(period):
+#         tweet.append(got.manager.TweetManager.getTweets(tweetCriteria)[j].text)
+#
+#     if i % 1 == 0:
+#         print(" {}/{} processed".format(i * period, num))
+#     if i % 5 == 0 and i != 0:
+#         write_to_csv(tweet)
+#
+#===============================================================
+# tweetCriteria = got.manager.TweetCriteria().setUsername(users)\
+#                                            .setSince("2018-09-10")\
+#                                            .setUntil("2019-01-01")\
+#                                            .setMaxTweets(10)
+# tweet = [got.manager.TweetManager.getTweets(tweetCriteria[i] for i in range(1))]
+# print(tweet.text)
+#
+# for i in range(1):
+#     print(tweet[i].text)
+
+# tweet_txt = [tweet[i].text for i in range(2)]
+# for i in range(2):
+#     print(tweet[i].text)
+
+# tweet=[i]
+
+
+# write_to_csv(tweet)
+# i=[]
+# df = pd.DataFrame(data ={"tweets":i})
+# df.to_cvs("./mycsv.csv",sep=",",indext=False)
+
+
+# df= pd.read_fwf('tweet.txt')
+# df.to_csv('tweet.csv')
+
+
