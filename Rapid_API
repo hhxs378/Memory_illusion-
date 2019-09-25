@@ -1,0 +1,85 @@
+import requests
+import json
+from twython import Twython
+#date_published:[2016-10-28 TO 2016-12-04]
+import tweepy
+import csv
+import json
+
+# load Twitter API credentials
+
+consumer_key = 'cGU6NcUYBo2luyEXzR8rUoior'
+consumer_secret = '12cLuRI1Mi7UjhPFhEpsD7X0LX2CMnRG6HBzP6v9HxIPkt7DQk'
+access_key = '2189941820-o8rGBs5JaiZ6mrWt0tdRCkrZiq2zSNpexIYWsxr'
+access_secret = 'BtgnVyWSQ2XiDc59iR4bneFmTrDJ32y3FUf5TkEygyPzI'
+
+
+# Authorization and initialization
+
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_key, access_secret)
+api = tweepy.API(auth)
+
+
+# collect twitter id
+url = "https://api-hoaxy.p.rapidapi.com/articles"
+
+querystring = {"sort_by":"relevant","use_lucene_syntax":"true","query":"trump cancelled michelle lunch"}
+
+headers = {
+    'x-rapidapi-host': "api-hoaxy.p.rapidapi.com",
+    'x-rapidapi-key': "7f7a2a9791msh81e833bb1df7668p1714c6jsn2f2c61a388c6"
+    }
+
+response = requests.request("GET", url, headers=headers, params=querystring)
+
+response1 = response.text
+j = json.loads(response1)
+articles = j['articles']
+ids = [articles[i]['id'] for i in range(len(articles))]
+print(ids)
+
+ids  = str(ids)
+
+# collect user id of all found twitter
+url = "https://api-hoaxy.p.rapidapi.com/network"
+
+querystring = {"nodes_limit":"10000","edges_limit":"12500","ids":ids}
+
+headers = {
+    'x-rapidapi-host': "api-hoaxy.p.rapidapi.com",
+    'x-rapidapi-key': "7f7a2a9791msh81e833bb1df7668p1714c6jsn2f2c61a388c6"
+    }
+
+response = requests.request("GET", url, headers=headers, params=querystring)
+
+response2 = response.text
+j = json.loads(response2)
+edges = j['edges']
+userids = [edges[i]['from_user_id'] for i in range(len(edges))]
+print(userids[:100])
+
+#to remove the repeat  user_id
+userIds = list(set(userids))
+print(userIds[:100])
+# #[to covert Twitter ID to screen name
+# #https://stackoverflow.com/questions/19778276/using-twython-to-convert-multiple-user-ids-to-user-names
+# #from twython import Twython
+
+#Auth steps
+twitter = Twython(consumer_key, consumer_secret)
+# samplefollower = ["259784090","136953436","1219150098"]
+# data = output[0]
+# print data["screen_name"]
+
+profile_data = twitter.lookup_user(user_id=userIds[:100])
+
+twiiterID=[]
+#Loop through the results
+for data in profile_data:
+    twiiterID.append(data['screen_name'])
+    print(data['screen_name'])
+    # twiiterID.append(u_id['screen_name'])
+    # print (samplefollower)
+print(twiiterID)
+
