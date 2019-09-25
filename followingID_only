@@ -1,0 +1,97 @@
+import tweepy
+import unicodecsv
+import sys
+from datetime import  timedelta, date
+from twython import Twython
+
+#Twitter Credentials
+
+consumer_key = 'cGU6NcUYBo2luyEXzR8rUoior'
+consumer_secret = '12cLuRI1Mi7UjhPFhEpsD7X0LX2CMnRG6HBzP6v9HxIPkt7DQk'
+access_key = '2189941820-o8rGBs5JaiZ6mrWt0tdRCkrZiq2zSNpexIYWsxr'
+access_secret = 'BtgnVyWSQ2XiDc59iR4bneFmTrDJ32y3FUf5TkEygyPzI'
+
+
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_key, access_secret)
+
+api = tweepy.API(auth)
+
+#  import GetOldTweet to scrape old  tweet
+if sys.version_info[0] <3:
+    import GetOldTweets3
+else:
+    import GetOldTweets3 as got
+
+
+def main():
+    users =["wintwriscoming"]
+    user_dict, user_id2name =get_user_id(users)
+#    get_friends_tweet(users,user_dict,user_id2name)
+
+def daterange(date1, date2):
+    for n in range(int((date2-date1).days)+1):
+        yield date1 + timedelta(n)
+
+def get_user_id(users):
+    user_dict ={}
+    user_id2name ={}
+    for user in users:
+        user_obj =api.get_user(user)
+        userFriends_id  =api.friends_ids(user)
+
+        twitter =Twython(consumer_key, consumer_secret)
+        profile_data =twitter.lookup_user(user_id=userFriends_id)
+        userFriends  =[data['screen_name'] for data in profile_data]
+
+        user_dict[user] =userFriends
+        user_id2name[user] =user_obj.name
+        print(userFriends)
+
+    return user_dict, user_id2name
+
+
+# def get_friends_tweet(users,user_dict, user_id2name):
+#     date_list =[]
+#     start_dt =date(2019,4,19)
+#     end_dt = date(2019,4,20)
+#     for dt in daterange(start_dt,end_dt):
+#         date_list.append(dt.strftime("%Y-%m-%d"))
+#
+#     max_tweets_per_day =20
+#     friend_tweets ={}
+#
+#     for user in users:
+#         for friend in list(user_dict[user]):
+#             tmp_tweets =[]
+#             for i in range(len(date_list)-1):
+#
+#                 tweetCriteria =got.manager.TweetCriteria().setUsername(friend)\
+#                     .setSince(date_list[i])\
+#                     .setUntil(date_list[i +1])\
+#                     .setMaxTweets(max_tweets_per_day)
+#
+#                 tweets =got.manager.TweetManager.getTweets(tweetCriteria)
+#                 for tw in tweets:
+#                     tmp_tweets.append(tw.text)
+#
+#                 if i% 1 ==0:
+#                      print("user:{}, friend:{}, iter:{:4d}; {} data processed".format(user,friend,i,date_list[i]))
+#
+#             friend_tweets[(user,friend)] =tmp_tweets
+#
+#             write_list =[]
+#             for tup in list(friend_tweets.keys()):
+#                 for tw in friend_tweets[tup]:
+#                     write_list.append([tup[0],user_id2name[tup[0], len(user_dict[tup[0]],tup[1],tw)]])
+#             write_to_csv(write_list)
+
+def write_to_csv(lst):
+    with open('followingID.csv','wb') as file:
+        writer =unicodecsv.writer(file,delimiter =',',quotechar ='"')
+        writer.writerow(["userID","userName","#of_following","friend_ID","friend_tweet"])
+        for line in lst :
+            writer.writerow(line)
+
+if __name__ == '__main__':
+    main()
