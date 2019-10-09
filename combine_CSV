@@ -1,0 +1,12 @@
+import pandas as pd
+
+
+csv_file_list=glob.glob('/Users/vitamind/Documents/test_tweet/MITCH_ronag75/' +'/*.csv')
+print(csv_file_list)
+concat_csv = []
+for f in csv_file_list:
+    l = pd.read_csv(f)
+    concat_csv.append(l)
+
+concat_csv = pd.concat(concat_csv)
+concat_csv.to_csv('/Users/vitamind/Documents/test_tweet/MITCH_ronag75/combined.csv')
