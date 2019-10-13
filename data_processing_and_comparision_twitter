@@ -23,7 +23,7 @@ print(NumUniqueTweet)
 with open('searched_result7.csv', 'w+') as file:
     for line in UniqueTweet:
         if "McConnell" in line:
-            alphabet1 = [c for c in line if c not in string.puncuation]
+            alphabet1 = [c for c in line if c not in string.punctuation]
             joined1 = ''.join(alphabet1)
             essential1 = [word for word in joined1.split() if word.lower() not in stopwords.words('english')]
             print(essential1)
@@ -31,7 +31,7 @@ with open('searched_result7.csv', 'w+') as file:
 
     for line in UniqueTweet:
         if "cocaine" in line:
-            alphabet2 = [c for c in line if c not in string.puncuation]
+            alphabet2 = [c for c in line if c not in string.punctuation]
             joined2 = ''.join(alphabet2)
             essential2 = [word for word in joined2.split() if word.lower() not in stopwords.words('english')]
             print(essential2)
