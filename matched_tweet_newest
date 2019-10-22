@@ -1,0 +1,96 @@
+# FT checked-final ver.
+
+from fuzzywuzzy import fuzz, process
+import numpy as np
+import pandas as pd
+import unicodecsv
+import string
+from nltk.corpus import stopwords
+import csv
+
+#======== data preparation ========
+#import dataset
+df1=pd.read_csv('MITCH_ronag75_1.csv')
+FT1=df1.friend_tweet
+
+#check data
+a1=df1['friend_tweet'].nunique()
+a3=np.size(FT1)
+
+#remove repeate  data
+UniqueTweet = df1['friend_tweet'].unique().astype(str)
+hhhhhh=len(UniqueTweet)
+
+
+
+#======== data preporcessing ========
+# Tweet A
+essential99 = []
+essential100 = []
+for line in UniqueTweet:
+   if  "McConnell" in line:
+      line1 = line
+
+
+      alphabet1 = [c for c in line if c not in string.punctuation]
+      joined1 = ''.join(alphabet1)
+      essential1 = [word for word in joined1.split() if word.lower() not in stopwords.words('english')]
+
+      essential99.append(line1)
+
+      essential11 = ' '.join(essential1)
+      essential100.append(essential11)
+
+print("check1")
+
+
+# Tweet C
+essential199 =[]
+essential200 =[]
+for line in UniqueTweet:
+  if "cocaine"  in line:
+      line2 = line
+      #print(line2)
+
+      alphabet2 = [c for c in line if c not in string.punctuation]
+      joined2 = ''.join(alphabet2)
+      essential2 = [word for word in joined2.split() if word.lower() not in stopwords.words('english')]
+      nn2 = essential199.append(essential2)
+
+
+      essential22 = ' '.join(line2)
+      hh2 = essential200.append(essential22)
+
+
+#======== Data saving after checking matched values ======
+with open ('matched_results_101619.csv','w+') as file:
+    writer =csv.writer(file,delimiter =',',quotechar ='"')
+    writer.writerow(['A_tweet','C_tweet','Common_word'])
+
+    matched_dict = {}
+
+    for i, sublist1 in enumerate(essential99):
+        for j, sublist2 in enumerate(essential199):
+            # b_match = False
+            for val1 in sublist1:
+                for val2 in sublist2:
+                    if val1 == val2:
+                        # b_match = True
+                    # print(essential100[i], '+', val1, '!', essential200[j], '+', val2)
+                        matched = (essential100[i], essential200[j])
+                        if matched not in matched_dict and val1 not in ['...', '']:
+                            matched_dict[matched] = [val1]
+                        else:
+                            matched_dict[matched].append(val1)
+                        break
+
+    for line in list(matched_dict.keys()):
+        writer.writerow([line[0], line[1], matched_dict[line]])
+        # print(line[0], line[1], matched_dict[line])
+    # print([(line[1], matched_dict[line]) )
+    # for
+    # writer.writerow([essential100[i], essential200[j], common_word_list])
+
+
+
+print(len(list(matched_dict.keys())))
